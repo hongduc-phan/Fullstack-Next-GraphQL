@@ -1,0 +1,74 @@
+import { Resolver, Query, Ctx, Arg, Int, Mutation } from 'type-graphql';
+import { Post } from '../entities/Post';
+import { MyContext } from '../../types';
+import { v4 as uuidv4 } from 'uuid';
+
+export interface Post {
+  id: string;
+  createAt: string;
+  updateAt: string;
+  title: string;
+}
+
+@Resolver()
+export class PostResolver {
+  @Query(() => [Post], { nullable: true })
+  posts(@Ctx() { em }: MyContext): Promise<Post[]> {
+    return em.find(Post, {});
+  }
+
+  @Query(() => Post, { nullable: true })
+  post(
+    @Arg('id', () => Int) id: string,
+    @Ctx() { em }: MyContext
+  ): Promise<Post | null> {
+    return em.findOne(Post, { id });
+  }
+
+  @Mutation(() => Post)
+  async createPost(
+    @Arg('title') title: string,
+    @Ctx() { em }: MyContext
+  ): Promise<Post> {
+    const id = uuidv4();
+    // const updateAt = new Date();
+    const post = em.create(Post, { id, title });
+    await em.persistAndFlush(post);
+    return post;
+  }
+
+  @Mutation(() => Post, { nullable: true })
+  async updatePost(
+    @Arg('id') id: String,
+    @Arg('title', () => String, { nullable: true }) title: string,
+    @Ctx() { em }: MyContext
+  ): Promise<Post | null> {
+    const post: Post | null = await em.findOne(Post, { id });
+    if (!post) {
+      return null;
+    }
+    if (typeof title !== 'undefined') {
+      post.title = title;
+      await em.persistAndFlush(post);
+    }
+
+    return post;
+  }
+
+  @Mutation(() => Boolean)
+  async deletePost(
+    @Arg('id') id: String,
+    @Ctx() { em }: MyContext
+  ): Promise<Boolean> {
+    try {
+      const post: Post | null = await em.findOne(Post, { id });
+      if (!post) {
+        return false;
+      }
+      await em.removeAndFlush(post);
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+}
