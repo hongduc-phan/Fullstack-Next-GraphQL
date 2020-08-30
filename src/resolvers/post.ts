@@ -3,13 +3,6 @@ import { Post } from '../entities/Post';
 import { MyContext } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 
-export interface Post {
-  id: string;
-  createAt: string;
-  updateAt: string;
-  title: string;
-}
-
 @Resolver()
 export class PostResolver {
   @Query(() => [Post], { nullable: true })
