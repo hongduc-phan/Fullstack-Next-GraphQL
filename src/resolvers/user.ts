@@ -72,10 +72,9 @@ export class UserResolver {
       };
     }
 
-    const id = uuidv4();
     const hashedPassword = await argon2.hash(options.password);
-    const user = await em.create(User, {
-      id,
+    const user = em.create(User, {
+      id: String(uuidv4()),
       username: String(options.username),
       password: hashedPassword,
     });
@@ -93,13 +92,14 @@ export class UserResolver {
         };
       }
     }
+
     return { user };
   }
 
   @Mutation(() => UserResponse)
   async login(
     @Arg('options') options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { em, req, res }: MyContext
   ): Promise<UserResponse> {
     try {
       const user = await em.findOne(User, {
@@ -128,9 +128,23 @@ export class UserResolver {
           ],
         };
       }
+      req.session.userId = user.id;
+
       return { user };
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { em, req }: MyContext) {
+    if (!req.session.userId) {
+      return null;
+    }
+
+    const user: User | null = await em.findOne(User, {
+      id: req.session.userId,
+    });
+    return user;
   }
 }
