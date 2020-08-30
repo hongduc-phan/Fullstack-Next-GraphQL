@@ -12,21 +12,21 @@ export class User {
   @Property({
     type: 'date',
     nullable: true,
+    // defaultRaw: new Date().toDateString(),
     onCreate: () => new Date(),
-    default: String(new Date()),
   })
   createAt = new Date();
 
   @Field(() => String)
   @Property({
     type: 'date',
-    nullable: true,
+    // defaultRaw: new Date().toDateString(),
     onUpdate: () => new Date(),
-    default: String(new Date()),
+    nullable: true,
   })
   updateAt = new Date();
 
-  @Field(() => String)
+  @Field()
   @Property({ type: 'text', unique: true })
   username!: string;
 

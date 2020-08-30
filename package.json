@@ -4,6 +4,7 @@
   "description": "",
   "main": "dist/src/index.js",
   "scripts": {
+    "create:migration": "npx mikro-orm migration:create",
     "gen-env": "gen-env-types .env -o src/env.d.ts -e .",
     "build": "tsc",
     "watch": "tsc -w",
@@ -37,7 +38,7 @@
     "@mikro-orm/migrations": "^4.0.0-alpha.0",
     "@mikro-orm/postgresql": "^4.0.0-alpha.0",
     "apollo-server-express": "^2.17.0",
-    "argon2": "^0.26.2",
+    "argon2": "^0.27.0",
     "connect-redis": "^5.0.0",
     "cors": "^2.8.5",
     "dataloader": "^2.0.0",
