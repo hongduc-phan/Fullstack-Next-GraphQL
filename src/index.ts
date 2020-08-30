@@ -27,7 +27,6 @@ const main = async () => {
   app.listen(4000, () => {
     console.log('server started on localhost: 4000');
   });
-  console.log(apolloServer);
 };
 
 main().catch((e) => {
