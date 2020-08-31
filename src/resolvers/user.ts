@@ -9,6 +9,7 @@ import {
   ObjectType,
 } from 'type-graphql';
 import argon2 from 'argon2';
+import { EntityManager } from '@mikro-orm/postgresql';
 import { MyContext } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../entities/User';
@@ -73,15 +74,31 @@ export class UserResolver {
     }
 
     const hashedPassword = await argon2.hash(options.password);
-    const user = em.create(User, {
-      id: String(uuidv4()),
-      username: String(options.username),
-      password: hashedPassword,
-    });
+    let user;
+    // const user = em.create(User, {
+    //   id: String(uuidv4()),
+    //   username: String(options.username),
+    //   password: hashedPassword,
+    // });
     try {
-      await em.persistAndFlush(user);
+      // fix bug of persistAndFlush
+      const result = await (em as EntityManager)
+        .createQueryBuilder(User)
+        .getKnexQuery()
+        .insert({
+          id: String(uuidv4()),
+          username: String(options.username),
+          password: hashedPassword,
+          create_at: new Date(),
+          update_at: new Date(),
+        })
+        .returning('*');
+
+      user = result[0];
+      // await em.persistAndFlush(user);
     } catch (error) {
-      if (error.detail.includes) {
+      console.log('error.detail', error.detail);
+      if (error.detail?.includes('already exists')) {
         return {
           errors: [
             {
@@ -99,7 +116,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(
     @Arg('options') options: UsernamePasswordInput,
-    @Ctx() { em, req, res }: MyContext
+    @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     try {
       const user = await em.findOne(User, {
